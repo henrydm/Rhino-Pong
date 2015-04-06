@@ -3,3 +3,10 @@ c:\users\henry\documents\visual studio 2012\Projects\RhinoPong\RhinoPong\bin\Rhi
 c:\users\henry\documents\visual studio 2012\Projects\RhinoPong\RhinoPong\bin\RhinoPong.pdb
 c:\users\henry\documents\visual studio 2012\Projects\RhinoPong\RhinoPong\obj\Debug64\RhinoPong.dll
 c:\users\henry\documents\visual studio 2012\Projects\RhinoPong\RhinoPong\obj\Debug64\RhinoPong.pdb
+C:\Users\Henry\Google Drive\codis\c#\Rhino-Pong\RhinoPong\bin\RhinoPong.dll
+C:\Users\Henry\Google Drive\codis\c#\Rhino-Pong\RhinoPong\bin\RhinoPong.pdb
+C:\Users\Henry\Google Drive\codis\c#\Rhino-Pong\RhinoPong\obj\Debug64\RhinoPong.csprojResolveAssemblyReference.cache
+C:\Users\Henry\Google Drive\codis\c#\Rhino-Pong\RhinoPong\obj\Debug64\RhinoPong.dll
+C:\Users\Henry\Google Drive\codis\c#\Rhino-Pong\RhinoPong\obj\Debug64\RhinoPong.pdb
+C:\Users\Henry\Google Drive\codis\c#\Rhino-Pong\RhinoPong\obj\Debug64\RhinoPong.Sounds.resources
+C:\Users\Henry\Google Drive\codis\c#\Rhino-Pong\RhinoPong\obj\Debug64\RhinoPong.csproj.GenerateResource.Cache

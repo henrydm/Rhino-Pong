@@ -46,8 +46,6 @@
   <ItemGroup>
     <Compile Include="Game.cs" />
     <Compile Include="IALevel.cs" />
-    <Compile Include="InterceptKeys.cs" />
-    <Compile Include="InterceptKeysEventArgs.cs" />
     <Compile Include="KeyboardHook\GlobalEventProvider.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -56,10 +54,42 @@
     <Compile Include="KeyboardHook\HookManager.Structures.cs" />
     <Compile Include="KeyboardHook\HookManager.Windows.cs" />
     <Compile Include="KeyboardHook\MouseEventExtArgs.cs" />
+    <Compile Include="Sounds1.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Sounds.resx</DependentUpon>
+    </Compile>
     <Compile Include="RhinoPongCommand.cs" />
     <Compile Include="RhinoPongPlugIn.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Sounds.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Sounds1.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\pong1.mp3" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SFX_Powerup_24.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\PlayerPoint.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\pong1.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\pong2.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\ComputerPoint.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\pong3.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

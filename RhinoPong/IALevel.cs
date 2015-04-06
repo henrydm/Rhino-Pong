@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace RhinoPong
+﻿namespace RhinoPong
 {
 
     internal class IALevel
@@ -23,7 +17,7 @@ namespace RhinoPong
             {
                 return new IALevel
                 {
-                    VerticalBladeTolerance = Settings.BallRadius*2 ,
+                    VerticalBladeTolerance = Settings.BallRadius*2,
                     SpeedBladeIA = 40,
                     SpeedBall = 80,
                     StopOnReleaseBall = true,
@@ -41,7 +35,7 @@ namespace RhinoPong
                     SpeedBladeIA = 70,
                     SpeedBall = 90,
                     StopOnReleaseBall = true,
-                    StartOnMiddleScreen = false,
+                    StartOnMiddleScreen = true,
                 };
             }
         }
@@ -52,10 +46,10 @@ namespace RhinoPong
                 return new IALevel
                 {
                     VerticalBladeTolerance = Settings.BallRadius * 0.5,
-                    SpeedBladeIA = 80,
-                    SpeedBall = 90,
+                    SpeedBladeIA = 90,
+                    SpeedBall = 120,
                     StopOnReleaseBall = true,
-                    StartOnMiddleScreen = false,
+                    StartOnMiddleScreen = true,
                 };
             }
         }
@@ -67,6 +61,7 @@ namespace RhinoPong
                 {
                     VerticalBladeTolerance = Settings.GameBoardHieght * 0.002,
                     SpeedBladeIA = 90,
+                    SpeedBall = 150,
                     StopOnReleaseBall = false,
                     StartOnMiddleScreen = false,
                 };
