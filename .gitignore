@@ -1,0 +1,4 @@
+*.pdb
+*.suo
+RhinoPong\bin\
+RhinoPong\obj\

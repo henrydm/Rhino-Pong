@@ -1,0 +1,5 @@
+c:\users\henry\documents\visual studio 2012\Projects\RhinoPong\RhinoPong\obj\Debug64\RhinoPong.csprojResolveAssemblyReference.cache
+c:\users\henry\documents\visual studio 2012\Projects\RhinoPong\RhinoPong\bin\RhinoPong.dll
+c:\users\henry\documents\visual studio 2012\Projects\RhinoPong\RhinoPong\bin\RhinoPong.pdb
+c:\users\henry\documents\visual studio 2012\Projects\RhinoPong\RhinoPong\obj\Debug64\RhinoPong.dll
+c:\users\henry\documents\visual studio 2012\Projects\RhinoPong\RhinoPong\obj\Debug64\RhinoPong.pdb
