@@ -33,7 +33,7 @@
                 {
                     VerticalBladeTolerance = Settings.BallRadius,
                     SpeedBladeIA = 70,
-                    SpeedBall = 90,
+                    SpeedBall = 100,
                     StopOnReleaseBall = true,
                     StartOnMiddleScreen = true,
                 };
@@ -47,7 +47,7 @@
                 {
                     VerticalBladeTolerance = Settings.BallRadius * 0.5,
                     SpeedBladeIA = 90,
-                    SpeedBall = 120,
+                    SpeedBall = 130,
                     StopOnReleaseBall = true,
                     StartOnMiddleScreen = true,
                 };
@@ -60,9 +60,9 @@
                 return new IALevel
                 {
                     VerticalBladeTolerance = Settings.GameBoardHieght * 0.002,
-                    SpeedBladeIA = 90,
+                    SpeedBladeIA = 120,
                     SpeedBall = 150,
-                    StopOnReleaseBall = false,
+                    StopOnReleaseBall = true,
                     StartOnMiddleScreen = false,
                 };
             }

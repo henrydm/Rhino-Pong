@@ -267,21 +267,21 @@ namespace RhinoPong
         private void ShowIAGoalAndRestart()
         {
             var bw = new BackgroundWorker();
-            bw.DoWork += (o, e) => ShowAnimation("-1", Color.Crimson, Settings.AnimationDurationMillis);
+            bw.DoWork += (o, e) => ShowAnimation("-1", Color.Black, Settings.AnimationDurationMillis);
             bw.RunWorkerCompleted += (o, e) => _bw.RunWorkerAsync();
             bw.RunWorkerAsync();
         }
         private void ShowPlayerWinAndShutDown()
         {
             var bw = new BackgroundWorker();
-            bw.DoWork += (o, e) => ShowAnimation("Player Win", Color.Purple, 3000.0);
+            bw.DoWork += (o, e) => ShowAnimation("Player Win", Color.DarkOrange, 3000.0);
             bw.RunWorkerCompleted += (o, e) => SetDownScene();
             bw.RunWorkerAsync();
         }
         private void ShowIAWinAndShutDown()
         {
             var bw = new BackgroundWorker();
-            bw.DoWork += (o, e) => ShowAnimation("Computer Win", Color.Purple, 3000.0);
+            bw.DoWork += (o, e) => ShowAnimation("Computer Win", Color.Sienna, 3000.0);
             bw.RunWorkerCompleted += (o, e) => SetDownScene();
             bw.RunWorkerAsync();
         }
@@ -446,7 +446,6 @@ namespace RhinoPong
                 }
                 else
                 {
-                    RhinoApp.WriteLine("non lateral: "+_keyDown);
                     switch (_keyDown)
                     {
                         case Keys.Left:
@@ -611,10 +610,10 @@ namespace RhinoPong
             var scoreHeigth = Convert.ToInt32(e.Viewport.Bounds.Height * 0.1);
 
             //Player Score
-            e.Display.Draw2dText(_playerPoints.ToString(), Color.OliveDrab, new Point2d(e.Viewport.Bounds.Width / 2.0 - scoreHeigth, scoreHeigth / 2.0), true, scoreHeigth, "Impact");
+            e.Display.Draw2dText(_playerPoints.ToString(), Color.ForestGreen, new Point2d(e.Viewport.Bounds.Width / 2.0 - scoreHeigth, scoreHeigth / 2.0), true, scoreHeigth, "Impact");
 
             //Player Score
-            e.Display.Draw2dText(_iaPoints.ToString(), Color.OliveDrab, new Point2d(e.Viewport.Bounds.Width / 2.0 + scoreHeigth, scoreHeigth / 2.0), true, scoreHeigth, "Impact");
+            e.Display.Draw2dText(_iaPoints.ToString(), Color.ForestGreen, new Point2d(e.Viewport.Bounds.Width / 2.0 + scoreHeigth, scoreHeigth / 2.0), true, scoreHeigth, "Impact");
 
             if (_bigText != null)
             {

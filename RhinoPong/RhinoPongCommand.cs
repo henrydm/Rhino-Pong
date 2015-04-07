@@ -58,10 +58,11 @@ namespace RhinoPong
                 options.Get();
                 var slectedOption = options.Option();
                 if (slectedOption == null) break;
-
+                
                 if (slectedOption.Index == indexLevel)
                 {
                     levelOptions.Get();
+                    if (levelOptions.Option() == null) break;
                     var selectedLevelIndex = levelOptions.Option().Index;
 
                     if (selectedLevelIndex == indexLevelEasy)
@@ -81,7 +82,6 @@ namespace RhinoPong
                         RhinoPong.Settings.IALevel = IALevel.Impossible;
                     }
 
-                    game.ResetGame();
                 }
 
                 else if (slectedOption.Index == indexFps)

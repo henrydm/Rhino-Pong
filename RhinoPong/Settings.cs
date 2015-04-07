@@ -20,7 +20,7 @@ namespace RhinoPong
             GameBoardHieght = 100.0;
             BallRadius = 1.0;
             BladeSize = new Vector3d(5, 20, 5);
-            SpeedBladePlayer = 40.0;
+            SpeedBladePlayer = 50.0;
             GamePointsToVictory = 3;
             AnimationFps = 40;
             Fps = 60.0;
