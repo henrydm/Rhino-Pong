@@ -18,37 +18,45 @@ namespace RhinoPong
     internal class Pong
     {
         #region Definitions
-        
+
         private readonly SoundPlayer _player;
         public bool ShowFps { get; set; }
         public bool SoundEnabled { get; set; }
         private bool _restart;
-        enum State { None, ColisionWall, ColisionLeftBlade, ColisionRightBlade, PlayerLost, IALost }
+        enum State { None, ColisionWallUp, ColisionWallDown, ColisionLeftBlade, ColisionRightBlade, PlayerLost, IALost }
         readonly DisplayMaterial _material;
         readonly BackgroundWorker _bw;
         bool _playing;
         int _playerPoints, _iaPoints, _bigTextHeight;
         double _frameRenderMilliseconds, _currentFps;
-        Brep _bladeLeft, _bladeRight, _limitBottom, _limitTop, _ball;
+        Mesh _bladeLeft, _bladeRight, _limitBottom, _limitTop, _ball;
         String _bigText;
         Color _bigTextColor;
         BoundingBox _bounding;
-        Point3d _bladeLeftInitialPosition, _bladeRightInitialPosition, _ballInitialPosition, _bladeLeftPosition, _bladeRightPosition, _ballPosition;
+
+        private Point3d _bladeLeftInitialPosition,
+            _bladeRightInitialPosition,
+            _ballInitialPosition,
+            _bladeLeftPosition,
+            _bladeRightPosition,
+            _ballPosition;
         Vector3d _ballDirection;
         Transform _bladeTransformLetft, _bladeTransformRight, _ballTransform;
         internal event EventHandler OnStopGame;
+
         #endregion
 
         //Constructor
         internal Pong()
         {
-           
+
+
             CreateBlades();
             CreatePlayGround();
             CreateBall();
             CreateAABB();
 
-            
+
             _material = new DisplayMaterial();
             _player = new SoundPlayer();
             _bw = new BackgroundWorker { WorkerSupportsCancellation = true };
@@ -59,7 +67,7 @@ namespace RhinoPong
         private void SetUpScene()
         {
             DisplayPipeline.CalculateBoundingBox += DisplayPipeline_CalculateBoundingBox;
-            DisplayPipeline.PostDrawObjects += DisplayPipeline_PostDrawObjects;
+            DisplayPipeline.DrawOverlay+= DisplayPipeline_PostDrawObjects;
             HookManager.KeyDown += OnKeyDown;
             HookManager.KeyUp += OnKeyUp;
             foreach (var view in RhinoDoc.ActiveDoc.Views)
@@ -72,7 +80,7 @@ namespace RhinoPong
         {
             _playing = false;
             DisplayPipeline.CalculateBoundingBox -= DisplayPipeline_CalculateBoundingBox;
-            DisplayPipeline.PostDrawObjects -= DisplayPipeline_PostDrawObjects;
+            DisplayPipeline.DrawOverlay -= DisplayPipeline_PostDrawObjects;
             HookManager.KeyDown -= OnKeyDown;
             RhinoDoc.ActiveDoc.Views.Redraw();
 
@@ -84,7 +92,8 @@ namespace RhinoPong
             var xInterval = new Interval(-Settings.BallRadius, Settings.BallRadius);
             var yInterval = new Interval(-Settings.BallRadius, Settings.BallRadius);
             var zInterval = new Interval(-Settings.BallRadius / 2, Settings.BallRadius / 2);
-            _ball = new Box(Plane.WorldXY, xInterval, yInterval, zInterval).ToBrep();
+
+            _ball = Mesh.CreateFromBox(new Box(Plane.WorldXY, xInterval, yInterval, zInterval), 1, 1, 1);
             _ballInitialPosition = Point3d.Origin;
             _ballPosition = Point3d.Origin;
             _ballTransform = Transform.Identity;
@@ -104,8 +113,8 @@ namespace RhinoPong
             var yInterval = new Interval(-Settings.GameBoardHieght / 2d - Settings.BladeSize.X / 2d, -Settings.GameBoardHieght / 2d + Settings.BladeSize.X / 2d);
             var zInterval = new Interval(-Settings.BladeSize.Z / 2, Settings.BladeSize.Z / 2);
 
-            _limitBottom = new Box(Plane.WorldXY, xInterval, yInterval, zInterval).ToBrep();
-            _limitTop = _limitBottom.DuplicateBrep();
+            _limitBottom = Mesh.CreateFromBox(new Box(Plane.WorldXY, xInterval, yInterval, zInterval), 1, 1, 1);
+            _limitTop = _limitBottom.DuplicateMesh();
             _limitTop.Translate(Vector3d.YAxis * Settings.GameBoardHieght);
         }
         private void CreateBlades()
@@ -114,8 +123,8 @@ namespace RhinoPong
             var yInterval = new Interval(-Settings.BladeSize.Y / 2, Settings.BladeSize.Y / 2);
             var zInterval = new Interval(-Settings.BladeSize.Z / 2, Settings.BladeSize.Z / 2);
 
-            _bladeLeft = new Box(Plane.WorldXY, xInterval, yInterval, zInterval).ToBrep();
-            _bladeRight = _bladeLeft.DuplicateBrep();
+            _bladeLeft = Mesh.CreateFromBox(new Box(Plane.WorldXY, xInterval, yInterval, zInterval), 1, 1, 1);
+            _bladeRight = _bladeLeft.DuplicateMesh();
             _bladeRight.Translate(new Vector3d(Settings.GameBoardWith, 0, 0));
 
             _bladeLeftInitialPosition = _bladeLeft.GetBoundingBox(true).Center;
@@ -154,7 +163,10 @@ namespace RhinoPong
         {
             switch (state)
             {
-                case State.ColisionWall:
+                case State.ColisionWallDown:
+                    PlaySoundPong(Sounds.pong3);
+                    break;
+                case State.ColisionWallUp:
                     PlaySoundPong(Sounds.pong3);
                     break;
                 case State.ColisionLeftBlade:
@@ -177,7 +189,7 @@ namespace RhinoPong
             _ballDirection = -Vector3d.XAxis;
             PlaySoundPong(Sounds.initSound);
             var sw = new Stopwatch();
-            var frameRenderMillisecondsMax = 1000.0 / Settings.Fps;
+             var frameRenderMillisecondsMax = 1000.0 / Convert.ToDouble(Settings.Fps);
             while (_playing)
             {
                 sw.Restart();
@@ -196,21 +208,34 @@ namespace RhinoPong
                     e.Result = state;
                     break;
                 }
-               
+
                
                 RightBladeIA();
-                RhinoDoc.ActiveDoc.Views.Redraw();
 
-                _frameRenderMilliseconds = sw.Elapsed.TotalMilliseconds;
+                Redraw();
 
-                //if (_frameRenderMilliseconds < frameRenderMillisecondsMax)
-                //{
-                //    Thread.Sleep(Convert.ToInt32(frameRenderMillisecondsMax - _frameRenderMilliseconds));
-                //}
+                if (sw.ElapsedMilliseconds < frameRenderMillisecondsMax)
+                {
+                    Thread.Sleep(Convert.ToInt32(frameRenderMillisecondsMax - sw.ElapsedMilliseconds));
+                }
 
-                _currentFps = 1000.0 / sw.ElapsedMilliseconds;
+
+                _frameRenderMilliseconds = sw.ElapsedMilliseconds;
+               
+
+
+
+                _currentFps = 1000.0 / _frameRenderMilliseconds;
             }
         }
+
+        private void Redraw()
+        {
+            RhinoDoc.ActiveDoc.Views.ActiveView.Redraw();
+            return;
+       
+        }
+
         private void GameFinish(object sender, RunWorkerCompletedEventArgs e)
         {
             //Player Win
@@ -312,6 +337,8 @@ namespace RhinoPong
                 }
                 currentFrame++;
             }
+
+
             _bigText = null;
         }
 
@@ -327,7 +354,7 @@ namespace RhinoPong
             _bladeRightPosition = new Point3d(_bladeRightInitialPosition);
             _bladeTransformRight = Transform.Identity;
         }
-        
+
         private void PlaySoundPong(UnmanagedMemoryStream stream)
         {
             if (!SoundEnabled) return;
@@ -337,27 +364,26 @@ namespace RhinoPong
 
         private void MoveBlades(bool down, GeometryBase geo)
         {
-            var bladeHalfSizeY = Settings.BladeSize.Y / 2.0;
-            var gameBoardHalfSizeY = Settings.GameBoardHieght / 2.0;
+
 
 
             //Left Blade
             if (geo == _bladeLeft)
             {
-                if (down && _bladeLeftPosition.Y - bladeHalfSizeY < -gameBoardHalfSizeY + Settings.BladeSize.X)
+                if (down && _bladeLeftPosition.Y - Settings.BladeSizeHalf.Y < -Settings.GameBoardHalfSizeY + Settings.BladeSize.X)
                 {
-                    _bladeLeftPosition.Y = -gameBoardHalfSizeY + Settings.BladeSize.X / 2.0 + bladeHalfSizeY;
+                    _bladeLeftPosition.Y = -Settings.GameBoardHalfSizeY + Settings.BladeSizeHalf.X + Settings.BladeSizeHalf.Y;
                     _bladeTransformLetft = Transform.Translation(_bladeLeftPosition - _bladeLeftInitialPosition);
                     return;
                 }
-                if (!down && _bladeLeftPosition.Y + bladeHalfSizeY > gameBoardHalfSizeY - Settings.BladeSize.X)
+                if (!down && _bladeLeftPosition.Y + Settings.BladeSizeHalf.Y > Settings.GameBoardHalfSizeY - Settings.BladeSize.X)
                 {
-                    _bladeLeftPosition.Y = gameBoardHalfSizeY - Settings.BladeSize.X / 2.0 - bladeHalfSizeY;
+                    _bladeLeftPosition.Y = Settings.GameBoardHalfSizeY - Settings.BladeSizeHalf.X - Settings.BladeSizeHalf.Y;
                     _bladeTransformLetft = Transform.Translation(_bladeLeftPosition - _bladeLeftInitialPosition);
                     return;
                 }
 
-                var motion = (_frameRenderMilliseconds * Settings.SpeedBladePlayer / 1000.0);
+                var motion = (_frameRenderMilliseconds * Settings.SpeedBladePlayer);
 
                 if (down)
                     _bladeLeftPosition.Y -= motion;
@@ -370,7 +396,7 @@ namespace RhinoPong
             //Right Blade
             else if (geo == _bladeRight)
             {
-                var motion = (_frameRenderMilliseconds * Settings.IALevel.SpeedBladeIA / 1000.0);
+                var motion = (_frameRenderMilliseconds * Settings.IALevel.SpeedBladeIA);
                 if (down)
                     _bladeRightPosition.Y -= motion;
                 else
@@ -389,20 +415,31 @@ namespace RhinoPong
             {
                 case State.None:
                     break;
-                case State.ColisionWall:
-                    _ballDirection.Y *= -1;
+                case State.ColisionWallUp:
+                    if (_ballDirection.Y > 0) _ballDirection.Y *= -1;
+                    break;
+                case State.ColisionWallDown:
+                    if (_ballDirection.Y < 0) _ballDirection.Y *= -1;
                     break;
                 case State.ColisionLeftBlade:
+
                     _ballDirection = _ballPosition - _bladeLeftPosition;
+                    if (_ballDirection.X < 0) _ballDirection.Reverse();
+                    _ballDirection.Unitize();
+
                     break;
                 case State.ColisionRightBlade:
+
                     _ballDirection = _ballPosition - _bladeRightPosition;
+                    if (_ballDirection.X > 0) _ballDirection.Reverse();
+                    _ballDirection.Unitize();
+
                     break;
             }
 
-            var motion = _frameRenderMilliseconds * Settings.IALevel.SpeedBall / 1000.0;
+            var motion = _frameRenderMilliseconds * Settings.IALevel.SpeedBall;
 
-            _ballDirection.Unitize();
+
             _ballPosition.Transform(Transform.Translation(_ballDirection * motion));
             _ballTransform = Transform.Translation(_ballPosition - _ballInitialPosition);
 
@@ -469,15 +506,15 @@ namespace RhinoPong
                 var diff = stapeDuration - elapsed;
                 if (diff > 0)
                     Thread.Sleep(Convert.ToInt32(diff));
-                
+
 
             }
         }
         private void OnKeyDown(object sender, KeyEventArgs e)
         {
             var supressKey = false;
-           
-            if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down || e.KeyCode == Keys.Left || e.KeyCode == Keys.Right ||  e.KeyCode == Keys.Escape)
+
+            if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down || e.KeyCode == Keys.Left || e.KeyCode == Keys.Right || e.KeyCode == Keys.Escape)
             {
                 supressKey = true;
 
@@ -490,11 +527,11 @@ namespace RhinoPong
 
                     if (x > y) useLateralKeys = false;
                 }
-   
-                if (_keyDown == Keys.None) 
+
+                if (_keyDown == Keys.None)
                 {
                     _keyDown = e.KeyCode;
-                    var bw=  new BackgroundWorker();
+                    var bw = new BackgroundWorker();
                     bw.DoWork += (o, ea) => ProcessKeyDown(useLateralKeys);
                     bw.RunWorkerAsync();
                 }
@@ -502,8 +539,8 @@ namespace RhinoPong
 
             e.SuppressKeyPress = supressKey;
 
-            
-               
+
+
 
         }
         private void OnKeyUp(object sender, KeyEventArgs e)
@@ -516,51 +553,52 @@ namespace RhinoPong
             var ballMaxX = _ballPosition.X + Settings.BallRadius;
             var ballMinY = _ballPosition.Y - Settings.BallRadius;
             var ballMaxY = _ballPosition.Y + Settings.BallRadius;
-            var halfHeigth = Settings.GameBoardHieght / 2.0;
 
-            var halfBladeX = Settings.BladeSize.X / 2;
-            var halfBladeY = Settings.BladeSize.Y / 2;
 
-            var minBladeLeftX = _bladeLeftPosition.X - halfBladeX;
-            var maxBladeLeftX = _bladeLeftPosition.X + halfBladeX;
+            var minBladeLeftX = _bladeLeftPosition.X - Settings.BladeSizeHalf.X;
+            var maxBladeLeftX = _bladeLeftPosition.X + Settings.BladeSizeHalf.X;
 
-            var minBladeLeftY = _bladeLeftPosition.Y - halfBladeY;
-            var maxBladeLeftY = _bladeLeftPosition.Y + halfBladeY;
+            var minBladeLeftY = _bladeLeftPosition.Y - Settings.BladeSizeHalf.Y;
+            var maxBladeLeftY = _bladeLeftPosition.Y + Settings.BladeSizeHalf.Y;
 
-            var minBladeRightX = _bladeRightPosition.X - halfBladeX;
-            var maxBladeRightX = _bladeRightPosition.X + halfBladeX;
+            var minBladeRightX = _bladeRightPosition.X - Settings.BladeSizeHalf.X;
+            var maxBladeRightX = _bladeRightPosition.X + Settings.BladeSizeHalf.X;
 
-            var minBladeRightY = _bladeRightPosition.Y - halfBladeY;
-            var maxBladeRightY = _bladeRightPosition.Y + halfBladeY;
+            var minBladeRightY = _bladeRightPosition.Y - Settings.BladeSizeHalf.Y;
+            var maxBladeRightY = _bladeRightPosition.Y + Settings.BladeSizeHalf.Y;
 
 
 
-            //Player Goal 
-            if (ballMaxX < minBladeLeftX - 10.0)
-                return State.PlayerLost;
-
-            //IA Goal
-            if (ballMinX > maxBladeRightX + 10.0)
-                return State.IALost;
-
-            //Wall Colision
-            if (ballMaxY >= halfHeigth - Settings.BladeSize.X / 2.0 || ballMinY <= -halfHeigth + Settings.BladeSize.X / 2.0)
-                return State.ColisionWall;
-
-
-            //Left Blade Collision
-            if (ballMinX <= maxBladeLeftX)
+            if (_ballDirection.X < 0 && ballMinX <= maxBladeLeftX)
             {
+                //Left Blade Collision
                 if (Between(ballMinY, minBladeLeftY, maxBladeLeftY) || Between(ballMaxY, minBladeLeftY, maxBladeLeftY))
+                    //if (ballMinY>)
                     return State.ColisionLeftBlade;
+
+                //Player Goal 
+                if (ballMaxX < minBladeLeftX - 10.0)
+                    return State.PlayerLost;
             }
 
-            //Right Blade Collision
-            if (ballMaxX >= minBladeRightX)
+
+            else if (_ballDirection.X > 0 && ballMaxX >= minBladeRightX)
             {
+                //Right Blade Collision
                 if (Between(ballMinY, minBladeRightY, maxBladeRightY) || Between(ballMaxY, minBladeRightY, maxBladeRightY))
                     return State.ColisionRightBlade;
+
+                //IA Goal
+                if (ballMinX > maxBladeRightX + 10.0)
+                    return State.IALost;
             }
+
+
+            //Wall Colision
+            if (ballMaxY >= Settings.GameBoardHalfSizeY - Settings.BladeSizeHalf.X)
+                return State.ColisionWallUp;
+            if (ballMinY <= -Settings.GameBoardHalfSizeY + Settings.BladeSizeHalf.X)
+                return State.ColisionWallDown;
 
             //No Colision
             return State.None;
@@ -582,22 +620,22 @@ namespace RhinoPong
         private void DisplayPipeline_PostDrawObjects(object sender, DrawEventArgs e)
         {
             //Walls
-            e.Display.DrawBrepShaded(_limitBottom, _material);
-            e.Display.DrawBrepShaded(_limitTop, _material);
+            e.Display.DrawMeshShaded(_limitBottom, _material);
+            e.Display.DrawMeshShaded(_limitTop, _material);
 
             //Left Blade
             e.Display.PushModelTransform(_bladeTransformLetft);
-            e.Display.DrawBrepShaded(_bladeLeft, _material);
+            e.Display.DrawMeshShaded(_bladeLeft, _material);
             e.Display.PopModelTransform();
 
             //Right Blade
             e.Display.PushModelTransform(_bladeTransformRight);
-            e.Display.DrawBrepShaded(_bladeRight, _material);
+            e.Display.DrawMeshShaded(_bladeRight, _material);
             e.Display.PopModelTransform();
 
             //Ball
             e.Display.PushModelTransform(_ballTransform);
-            e.Display.DrawBrepShaded(_ball, _material);
+            e.Display.DrawMeshShaded(_ball, _material);
             e.Display.PopModelTransform();
 
             //FPS
