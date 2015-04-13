@@ -18,7 +18,7 @@ namespace RhinoPong
     internal class Pong
     {
         #region Definitions
-
+        private bool _stpedFromInside;
         private readonly SoundPlayer _player;
         public bool ShowFps { get; set; }
         public bool SoundEnabled { get; set; }
@@ -67,7 +67,7 @@ namespace RhinoPong
         private void SetUpScene()
         {
             DisplayPipeline.CalculateBoundingBox += DisplayPipeline_CalculateBoundingBox;
-            DisplayPipeline.DrawOverlay+= DisplayPipeline_PostDrawObjects;
+            DisplayPipeline.DrawOverlay += DisplayPipeline_PostDrawObjects;
             HookManager.KeyDown += OnKeyDown;
             HookManager.KeyUp += OnKeyUp;
             foreach (var view in RhinoDoc.ActiveDoc.Views)
@@ -84,7 +84,7 @@ namespace RhinoPong
             HookManager.KeyDown -= OnKeyDown;
             RhinoDoc.ActiveDoc.Views.Redraw();
 
-            if (OnStopGame != null) OnStopGame(this, null);
+            if (OnStopGame != null && _stpedFromInside) OnStopGame(this, null);
         }
 
         private void CreateBall()
@@ -150,6 +150,9 @@ namespace RhinoPong
 
         public void ResetGame()
         {
+            _playerPoints = 0;
+            _iaPoints = 0;
+            ResetPositions();
             _restart = true;
             _playing = false;
         }
@@ -158,6 +161,12 @@ namespace RhinoPong
             _restart = false;
             _playing = false;
         }
+        private void StopFromInside()
+        {
+            _stpedFromInside = true;
+            StopGame();
+        }
+
 
         private void PlaySound(State state)
         {
@@ -189,7 +198,7 @@ namespace RhinoPong
             _ballDirection = -Vector3d.XAxis;
             PlaySoundPong(Sounds.initSound);
             var sw = new Stopwatch();
-             var frameRenderMillisecondsMax = 1000.0 / Convert.ToDouble(Settings.Fps);
+
             while (_playing)
             {
                 sw.Restart();
@@ -209,19 +218,19 @@ namespace RhinoPong
                     break;
                 }
 
-               
+
                 RightBladeIA();
 
                 Redraw();
 
-                if (sw.ElapsedMilliseconds < frameRenderMillisecondsMax)
+                if (sw.ElapsedMilliseconds < Settings.FrameRenderMillisecondsMax)
                 {
-                    Thread.Sleep(Convert.ToInt32(frameRenderMillisecondsMax - sw.ElapsedMilliseconds));
+                    Thread.Sleep(Convert.ToInt32(Settings.FrameRenderMillisecondsMax - sw.ElapsedMilliseconds));
                 }
 
 
                 _frameRenderMilliseconds = sw.ElapsedMilliseconds;
-               
+
 
 
 
@@ -233,7 +242,7 @@ namespace RhinoPong
         {
             RhinoDoc.ActiveDoc.Views.ActiveView.Redraw();
             return;
-       
+
         }
 
         private void GameFinish(object sender, RunWorkerCompletedEventArgs e)
@@ -364,24 +373,24 @@ namespace RhinoPong
 
         private void MoveBlades(bool down, GeometryBase geo)
         {
-
-
-
             //Left Blade
             if (geo == _bladeLeft)
             {
+                //Margin Down
                 if (down && _bladeLeftPosition.Y - Settings.BladeSizeHalf.Y < -Settings.GameBoardHalfSizeY + Settings.BladeSize.X)
                 {
                     _bladeLeftPosition.Y = -Settings.GameBoardHalfSizeY + Settings.BladeSizeHalf.X + Settings.BladeSizeHalf.Y;
                     _bladeTransformLetft = Transform.Translation(_bladeLeftPosition - _bladeLeftInitialPosition);
                     return;
                 }
+                //Margin Up
                 if (!down && _bladeLeftPosition.Y + Settings.BladeSizeHalf.Y > Settings.GameBoardHalfSizeY - Settings.BladeSize.X)
                 {
                     _bladeLeftPosition.Y = Settings.GameBoardHalfSizeY - Settings.BladeSizeHalf.X - Settings.BladeSizeHalf.Y;
                     _bladeTransformLetft = Transform.Translation(_bladeLeftPosition - _bladeLeftInitialPosition);
                     return;
                 }
+
 
                 var motion = (_frameRenderMilliseconds * Settings.SpeedBladePlayer);
 
@@ -396,6 +405,21 @@ namespace RhinoPong
             //Right Blade
             else if (geo == _bladeRight)
             {
+                //Margin Down
+                if (down && _bladeRightPosition.Y - Settings.BladeSizeHalf.Y < -Settings.GameBoardHalfSizeY + Settings.BladeSize.X)
+                {
+                    _bladeRightPosition.Y = -Settings.GameBoardHalfSizeY + Settings.BladeSizeHalf.X + Settings.BladeSizeHalf.Y;
+                    _bladeTransformRight = Transform.Translation(_bladeRightPosition - _bladeRightInitialPosition);
+                    return;
+                }
+                //Margin Up
+                if (!down && _bladeRightPosition.Y + Settings.BladeSizeHalf.Y > Settings.GameBoardHalfSizeY - Settings.BladeSize.X)
+                {
+                    _bladeRightPosition.Y = Settings.GameBoardHalfSizeY - Settings.BladeSizeHalf.X - Settings.BladeSizeHalf.Y;
+                    _bladeTransformRight = Transform.Translation(_bladeRightPosition - _bladeRightInitialPosition);
+                    return;
+                }
+                
                 var motion = (_frameRenderMilliseconds * Settings.IALevel.SpeedBladeIA);
                 if (down)
                     _bladeRightPosition.Y -= motion;
@@ -424,23 +448,21 @@ namespace RhinoPong
                 case State.ColisionLeftBlade:
 
                     _ballDirection = _ballPosition - _bladeLeftPosition;
-                    if (_ballDirection.X < 0) _ballDirection.Reverse();
                     _ballDirection.Unitize();
 
                     break;
                 case State.ColisionRightBlade:
 
                     _ballDirection = _ballPosition - _bladeRightPosition;
-                    if (_ballDirection.X > 0) _ballDirection.Reverse();
                     _ballDirection.Unitize();
-
                     break;
             }
 
             var motion = _frameRenderMilliseconds * Settings.IALevel.SpeedBall;
 
-
             _ballPosition.Transform(Transform.Translation(_ballDirection * motion));
+
+
             _ballTransform = Transform.Translation(_ballPosition - _ballInitialPosition);
 
             return colision;
@@ -464,7 +486,7 @@ namespace RhinoPong
         private void ProcessKeyDown(bool xView)
         {
             var sw = new Stopwatch();
-            var stapeDuration = 10.0;
+
             while (_keyDown != Keys.None)
             {
                 sw.Restart();
@@ -496,14 +518,14 @@ namespace RhinoPong
 
                 if (_keyDown == Keys.Escape)
                 {
-                    StopGame();
+                    StopFromInside();
                     SetDownScene();
                 }
 
 
 
                 var elapsed = sw.ElapsedMilliseconds;
-                var diff = stapeDuration - elapsed;
+                var diff = Settings.FrameRenderMillisecondsMax - elapsed;
                 if (diff > 0)
                     Thread.Sleep(Convert.ToInt32(diff));
 
@@ -573,11 +595,11 @@ namespace RhinoPong
             {
                 //Left Blade Collision
                 if (Between(ballMinY, minBladeLeftY, maxBladeLeftY) || Between(ballMaxY, minBladeLeftY, maxBladeLeftY))
-                    //if (ballMinY>)
-                    return State.ColisionLeftBlade;
+                    if (ballMaxX > minBladeLeftX)
+                        return State.ColisionLeftBlade;
 
-                //Player Goal 
-                if (ballMaxX < minBladeLeftX - 10.0)
+                //IA Goal
+                if (ballMaxX <minBladeLeftX -10)
                     return State.PlayerLost;
             }
 
@@ -586,10 +608,11 @@ namespace RhinoPong
             {
                 //Right Blade Collision
                 if (Between(ballMinY, minBladeRightY, maxBladeRightY) || Between(ballMaxY, minBladeRightY, maxBladeRightY))
+                    if (ballMinX < maxBladeRightX)
                     return State.ColisionRightBlade;
 
-                //IA Goal
-                if (ballMinX > maxBladeRightX + 10.0)
+                //Player Goal 
+                if (ballMinX > maxBladeRightX+10)
                     return State.IALost;
             }
 

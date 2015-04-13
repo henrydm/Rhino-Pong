@@ -37,12 +37,16 @@ namespace RhinoPong
             var options = new GetOption();
             options.SetCommandPrompt("Rhino-Pong");
             var indexLevel = options.AddOption("Level");
-            var indexFps = options.AddOption("ShowFPS");
+            var indexShowFps = options.AddOption("ShowFPS");
+            var indexSetFps = options.AddOption("SetFPS");
             var indexSound = options.AddOption("Sound");
+            var indexReset = options.AddOption("Reset");
             var indexExit = options.AddOption("Exit");
-           
+
             var levelOptions = new GetOption();
             levelOptions.SetCommandPrompt("Select Level");
+
+
 
             var indexLevelEasy = levelOptions.AddOption("Easy");
             var indexLevelMedium = levelOptions.AddOption("Medium");
@@ -58,7 +62,7 @@ namespace RhinoPong
                 options.Get();
                 var slectedOption = options.Option();
                 if (slectedOption == null) break;
-                
+
                 if (slectedOption.Index == indexLevel)
                 {
                     levelOptions.Get();
@@ -84,15 +88,29 @@ namespace RhinoPong
 
                 }
 
-                else if (slectedOption.Index == indexFps)
+                else if (slectedOption.Index == indexShowFps)
                 {
                     game.ShowFps = !game.ShowFps;
+                }
+                else if (slectedOption.Index == indexSetFps)
+                {
+                    var fps = RhinoPong.Settings.Fps;
+
+                    var res = RhinoGet.GetNumber("Type FPS", true, ref fps);
+
+                    if (res == Result.Success)
+                    {
+                        RhinoPong.Settings.Fps = RhinoMath.Clamp(fps, 20, 500);
+                    }
                 }
                 else if (slectedOption.Index == indexSound)
                 {
                     game.SoundEnabled = !game.SoundEnabled;
                 }
-
+                else if (slectedOption.Index == indexReset)
+                {
+                    game.ResetGame();
+                }
                 else
                 {
                     break;

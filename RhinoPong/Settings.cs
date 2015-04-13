@@ -1,4 +1,5 @@
-﻿using Rhino.Geometry;
+﻿using System;
+using Rhino.Geometry;
 
 namespace RhinoPong
 {
@@ -12,23 +13,34 @@ namespace RhinoPong
         public static double AnimationFps { get; set; }
         public static Vector3d BladeSize { get; set; }
         public static double SpeedBladePlayer { get; set; }
-        public static double Fps { get; set; }
+        private static double _fps;
+
+        public static double Fps
+        {
+            get { return _fps; }
+            set
+            {
+                _fps = value;
+                FrameRenderMillisecondsMax = 1000.0 / Convert.ToDouble(Fps);
+            }
+        }
+
         public static IALevel IALevel { get; set; }
 
         public static Vector3d BladeSizeHalf { get; set; }
-     
 
-       public static double GameBoardHalfSizeY { get; private set; }
-       public static double GameBoardHalfSizeX { get; private set; }
-           
-        
+
+        public static double GameBoardHalfSizeY { get; private set; }
+        public static double GameBoardHalfSizeX { get; private set; }
+        public static double FrameRenderMillisecondsMax { get; private set; }
+
         static Settings()
         {
             GameBoardWith = 150.0;
             GameBoardHieght = 100.0;
             BallRadius = 1.0;
             BladeSize = new Vector3d(5, 20, 5);
-            SpeedBladePlayer = 0.05;
+            SpeedBladePlayer = 0.08;
             GamePointsToVictory = 3;
             AnimationFps = 40;
             Fps = 300.0;
@@ -36,10 +48,10 @@ namespace RhinoPong
             IALevel = IALevel.Medium;
 
             //Helpers
-            GameBoardHalfSizeX = GameBoardWith/ 2.0;
+            GameBoardHalfSizeX = GameBoardWith / 2.0;
             GameBoardHalfSizeY = GameBoardHieght / 2.0;
             BladeSizeHalf = BladeSize / 2.0;
-           
+            FrameRenderMillisecondsMax = 1000.0 / Convert.ToDouble(Fps);
 
         }
     }
