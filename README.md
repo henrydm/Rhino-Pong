@@ -15,6 +15,5 @@ Features:
 * Reset Game at any time by command prompt option.
 * Exit by win&loose, pressing Esc. key or command prompt exit option
 
-To Install: Just drag RhinoPong.rhp to Rhinoceros, finally type Pong in command prompt and press Enter.
-
-
+To Install: 
+* Just drag RhinoPong.rhp to Rhinoceros, finally type Pong in command prompt and press Enter.
