@@ -1,6 +1,6 @@
-# Rhino-Pong
+# Rhino Pong
 
-Pong Game inside Rhinoceros 3D.
+Pong Game for Rhinoceros 3D (CAD Software).
 
 Use Up/Down keys to move the stick if you are in perspective (the sticks are in sides) if you rotate the scene and camera position is behind a stick use Left/Right keys.
 
